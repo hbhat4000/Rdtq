@@ -5,7 +5,6 @@ using namespace Rcpp;
 #include <cmath>
 #include "Rdtq_types.h"
 
-// [[Rcpp::export]]
 double callViaXPtr(const double x, SEXP xpsexp)
 {
   XPtr<funcPtr> xpfun(xpsexp);

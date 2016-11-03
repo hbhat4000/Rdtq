@@ -5,7 +5,43 @@ callViaXPtr <- function(x, xpsexp) {
     .Call('Rdtq_callViaXPtr', PACKAGE = 'Rdtq', x, xpsexp)
 }
 
-rdtq <- function(h, k, bigm, init, T, driftsexp, diffsexp) {
-    .Call('Rdtq_rdtq', PACKAGE = 'Rdtq', h, k, bigm, init, T, driftsexp, diffsexp)
+#' Density tracking by quadrature (DTQ)
+#'
+#' \code{rdtq} computes the probability density function (PDF) of a stochastic
+#' differential equation (SDE) with user-specified drift & diffusion functions.
+#' The SDE can be written as:
+#'
+#' \deqn{ dX_t = f(X_t) dt + g(X_t) dW_t }
+#'
+#' where \eqn{W_t} is standard Brownian motion, \eqn{f} is the drift
+#' function, and \deqn{g} is the diffusion function.  If we let \eqn{p(x,t)}
+#' denote the time-dependent PDF of \eqn{X_t}, then \code{rdtq} computes
+#' \eqn{p(x,T)} for a fixed time \eqn{T}.
+#'
+#' Note that the PDF is computed on a spatial grid that can be specified in
+#' one of three ways:
+#' (1) Specify a real, positive value k and a positive integer M = bigm.
+#' In this case, the PDF will be computed on the grid \eqn{x_j = j k} where
+#' \eqn{j = -M, -M+1, ..., 0, ..., M-1, M}.  In total, there will be
+#' \eqn{2 M+1} grid points.
+#' (2) Specify a real, positive integer M and a computational domain [a,b].
+#' In this case, there will be exactly M equispaced grid points.  The grid
+#' spacing will be \eqn{k = (b-a)/(M-1)}.
+#' (3) Specify the entire spatial grid via xvec.
+#'
+#' @param h Time step size, a positive numeric scalar.
+#' @param k Spatial grid spacing, a positive numeric scalar.
+#' @param bigm A positive integer such that -bigm*k and bigm*k are,
+#'   respectively, the minimum and maximum grid points.
+#' @param x0 A numeric scalar indicating a fixed initial condition of the
+#'   form \eqn{X_0 = x0}.
+#' @param T The final time, a positive numeric scalar. The computation
+#'   assumes an initial time of \eqn{t=0} and then computes the PDF at time
+#'   \eqn{t=T}.
+#' @param drift A pointer to the drift function.
+#' @param diffusion A pointer to the diffusion function.
+#'
+rdtq <- function(h, k, bigm, x0, T, drift, diffusion) {
+    .Call('Rdtq_rdtq', PACKAGE = 'Rdtq', h, k, bigm, x0, T, drift, diffusion)
 }
 
