@@ -26,6 +26,5 @@ require(Rdtq)
 k=0.01
 M=250
 test=rdtq(0.1,k,M,x0=0,T=1,drift=driftXPtr(),diffusion=diffXPtr())
-xgrid=c(-M:M)*k
 # compare with exact solution
 

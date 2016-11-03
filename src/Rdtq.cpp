@@ -17,9 +17,8 @@ double callViaXPtr(const double x, SEXP xpsexp)
 // some things that we need to add to this function:
 // 1) ability to specify arbitrary domain boundaries and k
 // 2) ability to specify xvec itself!
-// 3) ability to return both xvec and the pdf
 // 4) ability to make initial condition a pdf instead of a delta
-NumericVector rdtq(double h, double k, int bigm, double init, double T, SEXP driftsexp, SEXP diffsexp)
+List rdtq(double h, double k, int bigm, double init, double T, SEXP driftsexp, SEXP diffsexp)
 {
   XPtr<funcPtr> driftF(driftsexp);
   XPtr<funcPtr> diffF(diffsexp);
@@ -31,11 +30,13 @@ NumericVector rdtq(double h, double k, int bigm, double init, double T, SEXP dri
   NumericVector oldphatn(veclen);
   NumericVector phatn(veclen);
   NumericVector phatnp1(veclen);
+  NumericVector xvec(veclen);
 
   // pdf after one time step
   double mydiff = std::abs(difffun(init));
   double mydiff2 = pow(mydiff,2);
   for (int i=-bigm;i<=bigm;i++) {
+    xvec(i+bigm) = i*k;
     phatn(i+bigm) = exp(-pow(i*k-init-driftfun(init)*h,2)/(2.0*mydiff2*h))/(mydiff*sqrt(2.0*M_PI*h));
   }
 
@@ -74,7 +75,9 @@ NumericVector rdtq(double h, double k, int bigm, double init, double T, SEXP dri
     }
     phatn = phatnp1;
   }
-  return(phatn);
+
+  List ret = List::create(_["xvec"]=xvec,_["pdf"]=phatn);
+  return ret;
 }
 
 
