@@ -25,6 +25,6 @@ sourceCpp(code = '#include <Rcpp.h>
 require(Rdtq)
 k=0.01
 M=250
-test=rdtq(0.1,k,M,x0=0,T=1,drift=driftXPtr(),diffusion=diffXPtr())
-# compare with exact solution
+test=rdtq(0.1,k,M,init=0,T=1,drift=driftXPtr(),diffusion=diffXPtr())
+test2=rdtqgrid(0.1,-2.5,2.5,501,init=0,T=1,drift=driftXPtr(),diffusion=diffXPtr())
 

@@ -13,15 +13,17 @@ double callViaXPtr(const double x, SEXP xpsexp)
   return(y);
 }
 
-// [[Rcpp::export]]
+// default/optional arguments!!!
+
 // some things that we need to add to this function:
 // 1) ability to specify arbitrary domain boundaries and k
 // 2) ability to specify xvec itself!
-// 4) ability to make initial condition a pdf instead of a delta
-List rdtq(double h, double k, int bigm, double init, double T, SEXP driftsexp, SEXP diffsexp)
+
+// [[Rcpp::export]]
+List rdtq(double h, double k, int bigm, NumericVector init, double T, SEXP drift, SEXP diffusion)
 {
-  XPtr<funcPtr> driftF(driftsexp);
-  XPtr<funcPtr> diffF(diffsexp);
+  XPtr<funcPtr> driftF(drift);
+  XPtr<funcPtr> diffF(diffusion);
   funcPtr driftfun = *driftF;
   funcPtr difffun = *diffF;
 
@@ -31,13 +33,25 @@ List rdtq(double h, double k, int bigm, double init, double T, SEXP driftsexp, S
   NumericVector phatn(veclen);
   NumericVector phatnp1(veclen);
   NumericVector xvec(veclen);
-
-  // pdf after one time step
-  double mydiff = std::abs(difffun(init));
-  double mydiff2 = pow(mydiff,2);
   for (int i=-bigm;i<=bigm;i++) {
     xvec(i+bigm) = i*k;
-    phatn(i+bigm) = exp(-pow(i*k-init-driftfun(init)*h,2)/(2.0*mydiff2*h))/(mydiff*sqrt(2.0*M_PI*h));
+  }
+
+  if (init.size()==1)
+  {
+    double initval = init(0);
+    // pdf after one time step
+    // need to do this if initial condition is a fixed constant
+    // in which case initial PDF is a Dirac delta, so we do one step manually
+    double mydiff = std::abs(difffun(initval));
+    double mydiff2 = pow(mydiff,2);
+    for (int i=0;i<veclen;i++) {
+      phatn(i) = exp(-pow(xvec(i)-initval-driftfun(initval)*h,2)/(2.0*mydiff2*h))/(mydiff*sqrt(2.0*M_PI*h));
+    }
+  }
+  else
+  {
+    for (int i=0;i<veclen;i++) phatn(i) = init(i);
   }
 
   // iterate
@@ -80,5 +94,81 @@ List rdtq(double h, double k, int bigm, double init, double T, SEXP driftsexp, S
   return ret;
 }
 
+// version of rdtq in which user specifies the boundaries [a,b] of the spatial grid,
+// together with the total number of grid points
 
+// [[Rcpp::export]]
+List rdtqgrid(double h, double a, double b, unsigned int veclen, NumericVector init, double T, SEXP drift, SEXP diffusion)
+{
+  XPtr<funcPtr> driftF(drift);
+  XPtr<funcPtr> diffF(diffusion);
+  funcPtr driftfun = *driftF;
+  funcPtr difffun = *diffF;
+
+  NumericVector oldphatn(veclen);
+  NumericVector phatn(veclen);
+  NumericVector phatnp1(veclen);
+  NumericVector xvec(veclen);
+  double k = (b-a)/(veclen-1);
+  for (int i=0;i<(veclen-1);i++) {
+    xvec(i) = a + i*k;
+  }
+  xvec(veclen-1) = b;
+
+  if (init.size()==1)
+  {
+    double initval = init(0);
+    // pdf after one time step
+    // need to do this if initial condition is a fixed constant
+    // in which case initial PDF is a Dirac delta, so we do one step manually
+    double mydiff = std::abs(difffun(initval));
+    double mydiff2 = pow(mydiff,2);
+    for (int i=0;i<veclen;i++) {
+      phatn(i) = exp(-pow(xvec(i)-initval-driftfun(initval)*h,2)/(2.0*mydiff2*h))/(mydiff*sqrt(2.0*M_PI*h));
+    }
+  }
+  else
+  {
+    for (int i=0;i<veclen;i++) phatn(i) = init(i);
+  }
+
+  // iterate
+  int bign = ceil(T/h);
+  double thresh = 2.2e-16; // GSL_DBL_EPSILON;
+  double lthresh = log(thresh);
+  for (int n=1;n<bign;n++) {
+    for (int i=0;i<veclen;i++) {
+      bool keepgoing = true;
+      int j = i;
+      double tally = 0.0;
+      while (keepgoing) {
+        double thisdiff = pow(difffun(j*k),2);
+        double lker = log(k) - pow(xvec(i) - xvec(j) - driftfun(xvec(j))*h,2)/(2.0*thisdiff*h) - 0.5*log(2.0*M_PI*thisdiff*h);
+        if (lker < lthresh) keepgoing = false;
+        if (phatn(j) >= thresh)
+          tally += exp(lker + log(phatn(j)));
+        j++;
+        if (j > (veclen-1)) keepgoing = false;
+      }
+      if (i > 0) {
+        keepgoing = true;
+        j = i-1;
+      }
+      while (keepgoing) {
+        double thisdiff = pow(difffun(j*k),2);
+        double lker = log(k) - pow(xvec(i) - xvec(j) - driftfun(xvec(j))*h,2)/(2.0*thisdiff*h) - 0.5*log(2.0*M_PI*thisdiff*h);
+        if (lker < lthresh) keepgoing = false;
+        if (phatn(j) >= thresh)
+          tally += exp(lker + log(phatn(j)));
+        j--;
+        if (j < 0) keepgoing = false;
+      }
+      phatnp1(i) = tally;
+    }
+    phatn = phatnp1;
+  }
+
+  List ret = List::create(_["xvec"]=xvec,_["pdf"]=phatn);
+  return ret;
+}
 

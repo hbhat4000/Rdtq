@@ -4,26 +4,38 @@
 \alias{rdtq}
 \title{Density Tracking by Quadrature (DTQ)}
 \usage{
-rdtq(h, k, bigm, x0, T, drift, diffusion)
+rdtq(h, k, bigm, a = NULL, b = NULL, init, fT, drift, diffusion)
 }
 \arguments{
 \item{h}{Time step size, a positive numeric scalar.}
 
-\item{k}{Spatial grid spacing, a positive numeric scalar.}
+\item{k}{Spatial grid spacing, a positive numeric scalar.
+(Must be specified if a and b are not specified.)}
 
-\item{bigm}{A positive integer such that -\code{bigm*k} and \code{bigm*k}
-are, respectively, the minimum and maximum grid points.}
+\item{bigm}{If k is specified, then bigm is a positive integer such that
+-\code{bigm*k} and \code{bigm*k} are, respectively, the minimum and maximum
+grid points.  If a and b are specified, then bigm is the total number of
+grid points.  Note that the fractional part of bigm is ignored, and that
+floor(bigm) must be at least 2.}
 
-\item{x0}{A numeric scalar indicating a fixed initial condition of the
-form \eqn{X(0)}=\code{x0}.}
+\item{a}{Left boundary, a numeric scalar.
+(Must be specified if k is not specified.)}
 
-\item{T}{The final time, a positive numeric scalar. The computation
-assumes an initial time of \eqn{t}=0 and then computes the PDF at time
-\eqn{t}=\code{T}.}
+\item{b}{Right boundary, a numeric scalar.
+(Must be specified if k is not specified.)}
 
 \item{drift}{A pointer to the drift function.}
 
 \item{diffusion}{A pointer to the diffusion function.}
+
+\item{x0}{A numeric scalar indicating either a fixed initial condition of
+the form \eqn{X(0)}=\code{x0}, or a numeric vector giving the PDF at time
+\eqn{t=0}. In the latter case, the vector must have the same size as the
+spatial grid.}
+
+\item{T}{The final time, a positive numeric scalar. The computation
+assumes an initial time of \eqn{t}=0 and then computes the PDF at time
+\eqn{t}=\code{T}.}
 }
 \value{
 The output consists of a list with two elements:
@@ -46,7 +58,7 @@ denote the time-dependent PDF of \eqn{X(t)}, then \code{rdtq} computes
 \eqn{p(x,T)} for a fixed time \eqn{T}.
 
 Note that the PDF is computed on a spatial grid that can be specified in
-one of three ways:
+one of two ways:
 \enumerate{
  \item Specify a real, positive value \eqn{k} and a positive integer
 \eqn{M} = \code{bigm}. In this case, the PDF will be computed on the grid
@@ -55,7 +67,6 @@ there will be \eqn{2M+1} grid points.
  \item Specify a real, positive integer \eqn{M} and a computational domain
 \eqn{[a,b]}. In this case, there will be exactly \eqn{M} equispaced grid
 points. The grid spacing will be \eqn{k = (b-a)/(M-1)}.
- \item Specify the entire spatial grid via \code{xvec}.
 }
 }
 
