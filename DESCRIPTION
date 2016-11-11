@@ -7,5 +7,5 @@ Author: Harish S. Bhat, R. W. M. A. Madushani, Shagun Rawat
 Maintainer: Harish S. Bhat <hbhat@ucmerced.edu>
 Description: This package computes the time-dependent probability density function for a stochastic differential equation with user-specified drift and diffusion functions.
 License: GPL (>= 2)
-Imports: Rcpp (>= 0.12.4), Matrix (>= 1.2-7.1)
+Imports: Rcpp (>= 0.12.4), Matrix (>= 1.2)
 LinkingTo: Rcpp
