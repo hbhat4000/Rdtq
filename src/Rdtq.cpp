@@ -5,6 +5,7 @@ using namespace Rcpp;
 #include <cmath>
 #include "Rdtq_types.h"
 
+// [[Rcpp::export]]
 double callViaXPtr(const double x, SEXP xpsexp)
 {
   XPtr<funcPtr> xpfun(xpsexp);
@@ -12,12 +13,6 @@ double callViaXPtr(const double x, SEXP xpsexp)
   double y = fun(x);
   return(y);
 }
-
-// default/optional arguments!!!
-
-// some things that we need to add to this function:
-// 1) ability to specify arbitrary domain boundaries and k
-// 2) ability to specify xvec itself!
 
 // [[Rcpp::export]]
 List rdtq(double h, double k, int bigm, NumericVector init, double T, SEXP drift, SEXP diffusion)
@@ -37,6 +32,8 @@ List rdtq(double h, double k, int bigm, NumericVector init, double T, SEXP drift
     xvec(i+bigm) = i*k;
   }
 
+  int startn;
+
   if (init.size()==1)
   {
     double initval = init(0);
@@ -48,17 +45,19 @@ List rdtq(double h, double k, int bigm, NumericVector init, double T, SEXP drift
     for (int i=0;i<veclen;i++) {
       phatn(i) = exp(-pow(xvec(i)-initval-driftfun(initval)*h,2)/(2.0*mydiff2*h))/(mydiff*sqrt(2.0*M_PI*h));
     }
+    startn = 1;
   }
   else
   {
     for (int i=0;i<veclen;i++) phatn(i) = init(i);
+    startn = 0;
   }
 
   // iterate
   int bign = ceil(T/h);
   double thresh = 2.2e-16; // GSL_DBL_EPSILON;
   double lthresh = log(thresh);
-  for (int n=1;n<bign;n++) {
+  for (int n=startn;n<bign;n++) {
     for (int i=-bigm;i<=bigm;i++) {
       bool keepgoing = true;
       int j = i;

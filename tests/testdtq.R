@@ -1,3 +1,4 @@
+require(Rdtq)
 require(Rcpp)
 sourceCpp(code = '#include <Rcpp.h>
   using namespace Rcpp;
@@ -22,9 +23,8 @@ sourceCpp(code = '#include <Rcpp.h>
   }'
 )
 
-require(Rdtq)
 k=0.01
 M=250
-test=rdtq(0.1,k,M,init=0,T=1,drift=driftXPtr(),diffusion=diffXPtr())
-test2=rdtqgrid(0.1,-2.5,2.5,501,init=0,T=1,drift=driftXPtr(),diffusion=diffXPtr())
-
+test1=rdtq(h=0.1,k,bigm=M,init=0,fT=1,drift=driftXPtr(),diffusion=diffXPtr())
+test2=rdtq(h=0.1,a=-2.5,b=2.5,bigm=501,init=0,fT=1,drift=driftXPtr(),diffusion=diffXPtr())
+print(k*sum(abs(test1$pdf-test2$pdf)))
