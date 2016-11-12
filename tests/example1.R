@@ -1,3 +1,4 @@
+Sys.setenv("R_TESTS" = "")
 require(Rdtq)
 require(Rcpp)
 # Example 1:
@@ -23,8 +24,7 @@ sourceCpp(code = '#include <Rcpp.h>
   XPtr<funcPtr> diffXPtr()
   {
     return(XPtr<funcPtr>(new funcPtr(&diff)));
-  }'
-)
+  }')
 
 # Solve for the PDF (at final time fT=1) of the SDE with drift f,
 # diffusion g, and deterministic initial condition X(0) = 0.

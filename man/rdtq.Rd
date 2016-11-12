@@ -25,6 +25,15 @@ the total number of grid points.  Note that the fractional part of
 \item{b}{Right boundary, a numeric scalar.
 (Must be specified if \code{k} is not specified.)}
 
+\item{init}{A numeric scalar indicating either a fixed initial condition of
+the form \eqn{X(0)}=\code{init}, or a numeric vector giving the PDF at time
+\eqn{t=0}. In the latter case, the vector must have the same size as the
+spatial grid.}
+
+\item{fT}{The final time, a positive numeric scalar. The computation
+assumes an initial time of \eqn{t}=0 and then computes the PDF at time
+\eqn{t}=\code{fT}.}
+
 \item{drift}{This is required for the \code{method="cpp"} algorithm.
 A pointer to a drift function.  In our C++ code, we define the
 type \code{funcPtr} using the following code:
@@ -60,15 +69,6 @@ There are two choices:
   the Matrix package.  The method uses more memory than the \code{"cpp"} method, but may be
   faster for larger values of \code{h} and \code{k}.}
 }}
-
-\item{x0}{A numeric scalar indicating either a fixed initial condition of
-the form \eqn{X(0)}=\code{x0}, or a numeric vector giving the PDF at time
-\eqn{t=0}. In the latter case, the vector must have the same size as the
-spatial grid.}
-
-\item{T}{The final time, a positive numeric scalar. The computation
-assumes an initial time of \eqn{t}=0 and then computes the PDF at time
-\eqn{t}=\code{T}.}
 }
 \value{
 The output consists of a list with two elements:
@@ -108,6 +108,7 @@ points. The grid spacing will be \eqn{k = (b-a)/(M-1)}.
 # Example 1:
 # Define the drift function f(x) = -x and diffusion function g(x) = 1
 # using C++ code:
+require(Rcpp)
 sourceCpp(code = '#include <Rcpp.h>
 using namespace Rcpp;
 double drift(double& x)

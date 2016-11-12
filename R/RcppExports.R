@@ -119,13 +119,13 @@
 #'  (Must be specified if \code{k} is not specified.)
 #' @param b Right boundary, a numeric scalar.
 #'  (Must be specified if \code{k} is not specified.)
-#' @param x0 A numeric scalar indicating either a fixed initial condition of
-#'  the form \eqn{X(0)}=\code{x0}, or a numeric vector giving the PDF at time
+#' @param init A numeric scalar indicating either a fixed initial condition of
+#'  the form \eqn{X(0)}=\code{init}, or a numeric vector giving the PDF at time
 #'  \eqn{t=0}. In the latter case, the vector must have the same size as the
 #'  spatial grid.
-#' @param T The final time, a positive numeric scalar. The computation
+#' @param fT The final time, a positive numeric scalar. The computation
 #'  assumes an initial time of \eqn{t}=0 and then computes the PDF at time
-#'  \eqn{t}=\code{T}.
+#'  \eqn{t}=\code{fT}.
 #' @param drift This is required for the \code{method="cpp"} algorithm.
 #' A pointer to a drift function.  In our C++ code, we define the
 #' type \code{funcPtr} using the following code:
@@ -167,6 +167,7 @@
 #' # Example 1:
 #' # Define the drift function f(x) = -x and diffusion function g(x) = 1
 #' # using C++ code:
+#' require(Rcpp)
 #' sourceCpp(code = '#include <Rcpp.h>
 #' using namespace Rcpp;
 #' double drift(double& x)

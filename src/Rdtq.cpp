@@ -22,6 +22,7 @@ List rdtq(double h, double k, int bigm, NumericVector init, double T, SEXP drift
   funcPtr difffun = *diffF;
 
   unsigned int veclen = 2*bigm+1;
+  int iveclen = 2*bigm+1;
 
   NumericVector oldphatn(veclen);
   NumericVector phatn(veclen);
@@ -39,16 +40,17 @@ List rdtq(double h, double k, int bigm, NumericVector init, double T, SEXP drift
     // pdf after one time step
     // need to do this if initial condition is a fixed constant
     // in which case initial PDF is a Dirac delta, so we do one step manually
+    double mydrift = driftfun(initval);
     double mydiff = std::abs(difffun(initval));
     double mydiff2 = pow(mydiff,2);
-    for (int i=0;i<veclen;i++) {
-      phatn(i) = exp(-pow(xvec(i)-initval-driftfun(initval)*h,2)/(2.0*mydiff2*h))/(mydiff*sqrt(2.0*M_PI*h));
+    for (int i=0;i<iveclen;i++) {
+      phatn(i) = exp(-pow(xvec(i)-initval-mydrift*h,2)/(2.0*mydiff2*h))/(mydiff*sqrt(2.0*M_PI*h));
     }
     startn = 1;
   }
   else
   {
-    for (int i=0;i<veclen;i++) phatn(i) = init(i);
+    for (int i=0;i<iveclen;i++) phatn(i) = init(i);
     startn = 0;
   }
 
@@ -103,12 +105,14 @@ List rdtqgrid(double h, double a, double b, unsigned int veclen, NumericVector i
   funcPtr driftfun = *driftF;
   funcPtr difffun = *diffF;
 
+  int iveclen = (int) veclen;
+
   NumericVector oldphatn(veclen);
   NumericVector phatn(veclen);
   NumericVector phatnp1(veclen);
   NumericVector xvec(veclen);
-  double k = (b-a)/(veclen-1);
-  for (int i=0;i<(veclen-1);i++) {
+  double k = (b-a)/(iveclen-1);
+  for (int i=0;i<(iveclen-1);i++) {
     xvec(i) = a + i*k;
   }
   xvec(veclen-1) = b;
@@ -121,13 +125,13 @@ List rdtqgrid(double h, double a, double b, unsigned int veclen, NumericVector i
     // in which case initial PDF is a Dirac delta, so we do one step manually
     double mydiff = std::abs(difffun(initval));
     double mydiff2 = pow(mydiff,2);
-    for (int i=0;i<veclen;i++) {
+    for (int i=0;i<iveclen;i++) {
       phatn(i) = exp(-pow(xvec(i)-initval-driftfun(initval)*h,2)/(2.0*mydiff2*h))/(mydiff*sqrt(2.0*M_PI*h));
     }
   }
   else
   {
-    for (int i=0;i<veclen;i++) phatn(i) = init(i);
+    for (int i=0;i<iveclen;i++) phatn(i) = init(i);
   }
 
   // iterate
@@ -135,7 +139,7 @@ List rdtqgrid(double h, double a, double b, unsigned int veclen, NumericVector i
   double thresh = 2.2e-16; // GSL_DBL_EPSILON;
   double lthresh = log(thresh);
   for (int n=1;n<bign;n++) {
-    for (int i=0;i<veclen;i++) {
+    for (int i=0;i<iveclen;i++) {
       bool keepgoing = true;
       int j = i;
       double tally = 0.0;
@@ -146,7 +150,7 @@ List rdtqgrid(double h, double a, double b, unsigned int veclen, NumericVector i
         if (phatn(j) >= thresh)
           tally += exp(lker + log(phatn(j)));
         j++;
-        if (j > (veclen-1)) keepgoing = false;
+        if (j > (iveclen-1)) keepgoing = false;
       }
       if (i > 0) {
         keepgoing = true;

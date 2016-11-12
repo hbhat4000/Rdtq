@@ -1,3 +1,5 @@
+Sys.setenv("R_TESTS" = "")
+require(Rdtq)
 # Example 2:
 # We again use the drift function f(x) = -x and diffusion function g(x) = 1.
 # This time, we use the method="sparse" version of DTQ.
