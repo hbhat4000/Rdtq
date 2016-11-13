@@ -241,9 +241,15 @@ rdtq <- function(h, k=NULL, bigm, a=NULL, b=NULL, init, fT,
     if ((linit != 1) && (linit != (bigmout+1)))
       stop("Initial condition init must either be a scalar or a vector with the size (bigm+1), the same size as the spatial grid.")
     if (method=="cpp")
-      .Call('Rdtq_rdtq', PACKAGE = 'Rdtq', h, k, bigmout, init, fT, drift, diffusion)
+    {
+      print("Using cpp method.")
+      return(.Call('Rdtq_rdtq', PACKAGE = 'Rdtq', h, k, bigmout, init, fT, drift, diffusion))
+    }
     if (method=="sparse")
-      .dtqsparse(h=h, k=k, bigm=bigmout, init=init, fT=fT, drift=driftR, diffusion=diffusionR)
+    {
+      print("Using sparse method.")
+      return(.dtqsparse(h=h, k=k, bigm=bigmout, init=init, fT=fT, drift=driftR, diffusion=diffusionR))
+    }
   }
   else
   {
@@ -256,9 +262,15 @@ rdtq <- function(h, k=NULL, bigm, a=NULL, b=NULL, init, fT,
     if ((linit != 1) && (linit != bigmout))
       stop("Initial condition init must either be a scalar or a vector with the size bigm, the same size as the spatial grid.")
     if (method=="cpp")
-      .Call('Rdtq_rdtqgrid', PACKAGE = 'Rdtq', h, a, b, bigmout, init, fT, drift, diffusion)
+    {
+      print("Using cpp method.")
+      return(.Call('Rdtq_rdtqgrid', PACKAGE = 'Rdtq', h, a, b, bigmout, init, fT, drift, diffusion))
+    }
     if (method=="sparse")
-      .dtqsparse(h=h, a=a, b=b, bigm=bigmout, init=init, fT=fT, drift=driftR, diffusion=diffusionR)
+    {
+      print("Using sparse method.")
+      return(.dtqsparse(h=h, a=a, b=b, bigm=bigmout, init=init, fT=fT, drift=driftR, diffusion=diffusionR))
+    }
   }
 }
 

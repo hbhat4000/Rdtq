@@ -90,8 +90,7 @@ List rdtq(double h, double k, int bigm, NumericVector init, double T, SEXP drift
     phatn = phatnp1;
   }
 
-  List ret = List::create(_["xvec"]=xvec,_["pdf"]=phatn);
-  return ret;
+  return List::create(Named("xvec")=xvec,Named("pdf")=phatn);
 }
 
 // version of rdtq in which user specifies the boundaries [a,b] of the spatial grid,
@@ -123,10 +122,11 @@ List rdtqgrid(double h, double a, double b, unsigned int veclen, NumericVector i
     // pdf after one time step
     // need to do this if initial condition is a fixed constant
     // in which case initial PDF is a Dirac delta, so we do one step manually
+    double mydrift = driftfun(initval);
     double mydiff = std::abs(difffun(initval));
     double mydiff2 = pow(mydiff,2);
     for (int i=0;i<iveclen;i++) {
-      phatn(i) = exp(-pow(xvec(i)-initval-driftfun(initval)*h,2)/(2.0*mydiff2*h))/(mydiff*sqrt(2.0*M_PI*h));
+      phatn(i) = exp(-pow(xvec(i)-initval-mydrift*h,2)/(2.0*mydiff2*h))/(mydiff*sqrt(2.0*M_PI*h));
     }
   }
   else
@@ -170,7 +170,6 @@ List rdtqgrid(double h, double a, double b, unsigned int veclen, NumericVector i
     phatn = phatnp1;
   }
 
-  List ret = List::create(_["xvec"]=xvec,_["pdf"]=phatn);
-  return ret;
+  return List::create(Named("xvec")=xvec,Named("pdf")=phatn);
 }
 
