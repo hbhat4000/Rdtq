@@ -126,18 +126,33 @@
 #' @param fT The final time, a positive numeric scalar. The computation
 #'  assumes an initial time of \eqn{t}=0 and then computes the PDF at time
 #'  \eqn{t}=\code{fT}.
-#' @param drift This is required for the \code{method="cpp"} algorithm.
-#' A pointer to a drift function.  In our C++ code, we define the
-#' type \code{funcPtr} using the following code:
+#' @param drift When the user chooses the \code{method="cpp"} algorithm,
+#' this should be a pointer to a drift function that is implemented in C++
+#' using \code{Rcpp}.  In our C++ code, we define the type \code{funcPtr}
+#' using the following code:
 #'
 #' \code{typedef double (*funcPtr)(const double& x);}
 #'
 #' We expect the drift function to be a C++ function, implemented using Rcpp, of
 #' type \code{XPtr<funcPtr>}.  See the first example below.
 #'
-#' @param diffusion This is required for the \code{method="cpp"} algorithm.
-#' A pointer to the diffusion function.  The type is the same as for
-#' the drift function.  See the first example below.
+#' When the user chooses the \code{method="sparse"} algorithm, this should be an
+#' R function that takes as input a numeric vector of values.
+#' The function should return as output a numeric vector containing the drift
+#' function evaluated at each element of the input vector.
+#' See the second example below.
+#'
+#' @param diffusion When the user chooses the \code{method="cpp"} algorithm,
+#' this should be a pointer to a diffusion function that is implemented in C++
+#' using \code{Rcpp}.  All of the details are analogous to that of the \code{drift}
+#' function described above.
+#'
+#' When the user chooses the \code{method="sparse"} algorithm, this should be an
+#' R function that takes as input a numeric vector of values.
+#' The function should return as output a numeric vector containing the diffusion
+#' function evaluated at each element of the input vector.
+#' See the second example below.
+#'
 #' @param thresh This is an optional numeric scalar parameter that is only used
 #' for the \code{method="cpp"} algorithm.  When the DTQ summand drops below
 #' code{thresh}, the algorithm stops summing, even if it has not summed over
@@ -146,12 +161,9 @@
 #' value such as \eqn{2.2 \times 10^{-16}} can result in a substantial speed up
 #' for computations on large spatial grids, especially when \eqn{h} is also small.
 #' @param driftR This is required for the \code{method="sparse"} algorithm.
-#' This should be a function that takes as input a numeric vector of values.
-#' The function should return as output a numeric vector containing the drift
-#' function evaluated at each element of the input vector.
-#' See the second example below.
+#' T
 #' @param diffusionR This is required for the \code{method="cpp"} algorithm.
-#' This should be a function that takes as input a numeric vector of values.
+#' This should be an R function that takes as input a numeric vector of values.
 #' The function should return as output a numeric vector containing the drift
 #' function evaluated at each element of the input vector.
 #' See the second example below.
@@ -221,11 +233,11 @@
 #' mydrift = function(x) { -x }
 #' mydiff = function(x) { rep(1,length(x)) }
 #' test = rdtq(h=0.1,k=0.01,bigm=250,init=0,fT=1,
-#'             driftR=mydrift,diffusionR=mydiff,method="sparse")
+#'             drift=mydrift,diffusion=mydiff,method="sparse")
 #' plot(test$xvec,test$pdf,type='l')
 rdtq <- function(h, k=NULL, bigm, a=NULL, b=NULL, init, fT,
                  drift=NULL, diffusion=NULL, thresh=0,
-                 driftR=NULL, diffusionR=NULL, method="sparse") {
+                 method="sparse") {
   if ((method != "cpp") && (method != "sparse"))
     stop("Invalid method.")
   if ((method == "cpp") && (is.null(drift) || is.null(diffusion)))
@@ -300,15 +312,16 @@ rdtq <- function(h, k=NULL, bigm, a=NULL, b=NULL, init, fT,
 #' @param method This must be a string, either "cpp" or "sparse", that indicates
 #'  which algorithm to use.  See the parameter of the same
 #'  name in the \code{rdtq} function.
-#' @param drift if \code{method="cpp"}, then this should be a pointer to the
-#'  drift function, as in the \code{drift} parameter of the
-#'  \code{rdtq}  function.
-#'  If \code{method="sparse"}, then this should be the name of an R function,
-#'  as in the \code{driftR} parameter of the
-#'  \code{rdtq} function.
-#' @param diffusion pointer to the diffusion function.  This should either be
-#'  a pointer to the diffusion function (if \code{method="cpp"}) or the name of
-#'  an R function (if \code{method="sparse"}).
+#' @param drift if \code{method="cpp"}, then this should be a pointer to a
+#'  drift function implemented in C++ using \code{Rcpp}.
+#'  If \code{method="sparse"}, then this should be the name of an R function.
+#'  For further details, see the description of the \code{drift} parameter for
+#'  the \code{rdtq} function.
+#' @param diffusion if \code{method="cpp"}, then this should be a pointer to a
+#'  diffusion function implemented in C++ using \code{Rcpp}.
+#'  If \code{method="sparse"}, then this should be the name of an R function.
+#'  For further details, see the description of the \code{diffusion} parameter for
+#'  the \code{rdtq} function.
 #' @param exact an R function that accepts two arguments, \code{xvec} and
 #'  \code{T}, and returns the exact probability density function \eqn{p(x,T)}
 #'  for each \eqn{x} in \code{xvec}.

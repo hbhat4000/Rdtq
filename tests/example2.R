@@ -7,6 +7,6 @@ require(Rdtq)
 mydrift = function(x) { -x }
 mydiff = function(x) { rep(1,length(x)) }
 test = rdtq(h=0.1,k=0.01,bigm=250,init=0,fT=1,
-            driftR=mydrift,diffusionR=mydiff,method="sparse")
+            drift=mydrift,diffusion=mydiff,method="sparse")
 plot(test$xvec,test$pdf,type='l')
 
