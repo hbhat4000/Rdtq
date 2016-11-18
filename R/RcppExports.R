@@ -327,6 +327,7 @@ rdtq <- function(h, k=NULL, bigm, a=NULL, b=NULL, init, fT,
 #' @return The function returns the errors between the DTQ and exact solutions
 #'  indexed by the corresponding value of hseq.  The errors are returned in
 #'  the \eqn{L^1} norm, \eqn{L^\infty} norm, and the Kolmogorov-Smirnov norm.
+#'  The errors are returned in the form of a data frame.
 studydtqconv <- function(method, drift, diffusion, exact, hseq, kseq, init, fT, thresh=0)
 {
   if (!is.numeric(hseq))
