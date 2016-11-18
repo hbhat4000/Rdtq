@@ -14,7 +14,7 @@ double callViaXPtr(const double x, SEXP xpsexp)
 }
 
 // [[Rcpp::export]]
-List rdtq(double h, double k, int bigm, NumericVector init, double T, SEXP drift, SEXP diffusion)
+List rdtq(double h, double k, int bigm, NumericVector init, double T, SEXP drift, SEXP diffusion, double thresh)
 {
   XPtr<funcPtr> driftF(drift);
   XPtr<funcPtr> diffF(diffusion);
@@ -56,8 +56,6 @@ List rdtq(double h, double k, int bigm, NumericVector init, double T, SEXP drift
 
   // iterate
   int bign = ceil(T/h);
-  double thresh = 2.2e-16; // GSL_DBL_EPSILON;
-  double lthresh = log(thresh);
   for (int n=startn;n<bign;n++) {
     for (int i=-bigm;i<=bigm;i++) {
       bool keepgoing = true;
@@ -66,7 +64,9 @@ List rdtq(double h, double k, int bigm, NumericVector init, double T, SEXP drift
       while (keepgoing) {
         double thisdiff = pow(difffun(j*k),2);
         double lker = log(k) - pow(i*k - j*k - driftfun(j*k)*h,2)/(2.0*thisdiff*h) - 0.5*log(2.0*M_PI*thisdiff*h);
-        if (lker < lthresh) keepgoing = false;
+        if (thresh > 0)
+          if (lker < log(thresh))
+            keepgoing = false;
         if (phatn(j+bigm) >= thresh)
           tally += exp(lker + log(phatn(j+bigm)));
         j++;
@@ -79,7 +79,9 @@ List rdtq(double h, double k, int bigm, NumericVector init, double T, SEXP drift
       while (keepgoing) {
         double thisdiff = pow(difffun(j*k),2);
         double lker = log(k) - pow(i*k - j*k - driftfun(j*k)*h,2)/(2.0*thisdiff*h) - 0.5*log(2.0*M_PI*thisdiff*h);
-        if (lker < lthresh) keepgoing = false;
+        if (thresh > 0)
+          if (lker < log(thresh))
+            keepgoing = false;
         if (phatn(j+bigm) >= thresh)
           tally += exp(lker + log(phatn(j+bigm)));
         j--;
@@ -97,7 +99,7 @@ List rdtq(double h, double k, int bigm, NumericVector init, double T, SEXP drift
 // together with the total number of grid points
 
 // [[Rcpp::export]]
-List rdtqgrid(double h, double a, double b, unsigned int veclen, NumericVector init, double T, SEXP drift, SEXP diffusion)
+List rdtqgrid(double h, double a, double b, unsigned int veclen, NumericVector init, double T, SEXP drift, SEXP diffusion, double thresh)
 {
   XPtr<funcPtr> driftF(drift);
   XPtr<funcPtr> diffF(diffusion);
@@ -136,8 +138,6 @@ List rdtqgrid(double h, double a, double b, unsigned int veclen, NumericVector i
 
   // iterate
   int bign = ceil(T/h);
-  double thresh = 2.2e-16; // GSL_DBL_EPSILON;
-  double lthresh = log(thresh);
   for (int n=1;n<bign;n++) {
     for (int i=0;i<iveclen;i++) {
       bool keepgoing = true;
@@ -146,7 +146,9 @@ List rdtqgrid(double h, double a, double b, unsigned int veclen, NumericVector i
       while (keepgoing) {
         double thisdiff = pow(difffun(j*k),2);
         double lker = log(k) - pow(xvec(i) - xvec(j) - driftfun(xvec(j))*h,2)/(2.0*thisdiff*h) - 0.5*log(2.0*M_PI*thisdiff*h);
-        if (lker < lthresh) keepgoing = false;
+        if (thresh > 0)
+          if (lker < log(thresh))
+            keepgoing = false;
         if (phatn(j) >= thresh)
           tally += exp(lker + log(phatn(j)));
         j++;
@@ -159,7 +161,9 @@ List rdtqgrid(double h, double a, double b, unsigned int veclen, NumericVector i
       while (keepgoing) {
         double thisdiff = pow(difffun(j*k),2);
         double lker = log(k) - pow(xvec(i) - xvec(j) - driftfun(xvec(j))*h,2)/(2.0*thisdiff*h) - 0.5*log(2.0*M_PI*thisdiff*h);
-        if (lker < lthresh) keepgoing = false;
+        if (thresh > 0)
+          if (lker < log(thresh))
+            keepgoing = false;
         if (phatn(j) >= thresh)
           tally += exp(lker + log(phatn(j)));
         j--;

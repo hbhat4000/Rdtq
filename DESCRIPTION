@@ -1,11 +1,13 @@
 Package: Rdtq
 Type: Package
-Title: Density tracking by quadrature
-Version: 1.0
-Date: 2016-11-3
-Author: Harish S. Bhat, R. W. M. A. Madushani, Shagun Rawat
+Title: Density Tracking by Quadrature
+Version: 0.1
+Date: 2016-11-17
+Authors: Harish S. Bhat, R. W. M. A. Madushani, Shagun Rawat
 Maintainer: Harish S. Bhat <hbhat@ucmerced.edu>
 Description: This package computes the time-dependent probability density function for a stochastic differential equation with user-specified drift and diffusion functions.
+Depends: R (>= 3.2.0)
 License: GPL (>= 2)
 Imports: Rcpp (>= 0.12.4), Matrix (>= 1.2)
 LinkingTo: Rcpp
+LazyData: true

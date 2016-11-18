@@ -5,7 +5,8 @@
 \title{Density Tracking by Quadrature (DTQ)}
 \usage{
 rdtq(h, k = NULL, bigm, a = NULL, b = NULL, init, fT, drift = NULL,
-  diffusion = NULL, driftR = NULL, diffusionR = NULL, method = "cpp")
+  diffusion = NULL, thresh = 0, driftR = NULL, diffusionR = NULL,
+  method = "sparse")
 }
 \arguments{
 \item{h}{Time step size, a positive numeric scalar.}
@@ -47,6 +48,14 @@ type \code{XPtr<funcPtr>}.  See the first example below.}
 A pointer to the diffusion function.  The type is the same as for
 the drift function.  See the first example below.}
 
+\item{thresh}{This is an optional numeric scalar parameter that is only used
+for the \code{method="cpp"} algorithm.  When the DTQ summand drops below
+code{\thresh}, the algorithm stops summing, even if it has not summed over
+all grid points.  The default value of this parameter is zero, indicating that
+the full DTQ sum is evaluated.  Setting this parameter to a small positive
+value such as \eqn{2.2 \times 10^{-16}} can result in a substantial speed up
+for computations on large spatial grids, especially when \eqn{h} is also small.}
+
 \item{driftR}{This is required for the \code{method="sparse"} algorithm.
 This should be a function that takes as input a numeric vector of values.
 The function should return as output a numeric vector containing the drift
@@ -64,10 +73,11 @@ There are two choices:
 \describe{
   \item{\code{"cpp"}}{This DTQ method is implemented in C++.  No matrices are formed;
   the method is highly conservative in its usage of memory.  For sufficiently small \code{h} and \code{k},
-  it is necessary to use this method.}
+  it is necessary to use this method.  This method also allows for approximate
+  evaluation of the DTQ algorithm by setting a positive threshold parameter.}
   \item{\code{"sparse"}}{This DTQ method is implemented in R using sparse matrices from
   the Matrix package.  The method uses more memory than the \code{"cpp"} method, but may be
-  faster for larger values of \code{h} and \code{k}.}
+  faster for larger values of \code{h} and \code{k}.  This is the default method.}
 }}
 }
 \value{
@@ -152,5 +162,10 @@ mydiff = function(x) { rep(1,length(x)) }
 test = rdtq(h=0.1,k=0.01,bigm=250,init=0,fT=1,
             driftR=mydrift,diffusionR=mydiff,method="sparse")
 plot(test$xvec,test$pdf,type='l')
+}
+\seealso{
+H. S. Bhat and R. W. M. A. Madushani,
+"Density Tracking by Quadrature for Stochastic Differential Equations,"
+arXiv:1610.09572 [stat.CO], \url{http://bit.ly/2fbNsp5}
 }
 
