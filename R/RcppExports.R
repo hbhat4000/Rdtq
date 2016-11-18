@@ -140,7 +140,7 @@
 #' the drift function.  See the first example below.
 #' @param thresh This is an optional numeric scalar parameter that is only used
 #' for the \code{method="cpp"} algorithm.  When the DTQ summand drops below
-#' code{\thresh}, the algorithm stops summing, even if it has not summed over
+#' code{thresh}, the algorithm stops summing, even if it has not summed over
 #' all grid points.  The default value of this parameter is zero, indicating that
 #' the full DTQ sum is evaluated.  Setting this parameter to a small positive
 #' value such as \eqn{2.2 \times 10^{-16}} can result in a substantial speed up
@@ -209,9 +209,9 @@
 #' k = 0.01
 #' M = 250
 #' test1 = rdtq(h=0.1,k,bigm=M,init=0,fT=1,
-#'              drift=driftXPtr(),diffusion=diffXPtr())
+#'              drift=driftXPtr(),diffusion=diffXPtr(),method="cpp")
 #' test2 = rdtq(h=0.1,a=-2.5,b=2.5,bigm=501,init=0,fT=1,
-#'              drift=driftXPtr(),diffusion=diffXPtr())
+#'              drift=driftXPtr(),diffusion=diffXPtr(),method="cpp")
 #' print(k*sum(abs(test1$pdf-test2$pdf)))
 #'
 #' # Example 2:

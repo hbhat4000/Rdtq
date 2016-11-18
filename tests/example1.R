@@ -34,8 +34,8 @@ sourceCpp(code = '#include <Rcpp.h>
 k = 0.01
 M = 250
 test1 = rdtq(h=0.1,k,bigm=M,init=0,fT=1,
-             drift=driftXPtr(),diffusion=diffXPtr())
+             drift=driftXPtr(),diffusion=diffXPtr(),method="cpp")
 test2 = rdtq(h=0.1,a=-2.5,b=2.5,bigm=501,init=0,fT=1,
-             drift=driftXPtr(),diffusion=diffXPtr())
+             drift=driftXPtr(),diffusion=diffXPtr(),method="cpp")
 print(k*sum(abs(test1$pdf-test2$pdf)))
 
