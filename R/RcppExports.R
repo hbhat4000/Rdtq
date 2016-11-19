@@ -160,13 +160,6 @@
 #' the full DTQ sum is evaluated.  Setting this parameter to a small positive
 #' value such as \eqn{2.2 \times 10^{-16}} can result in a substantial speed up
 #' for computations on large spatial grids, especially when \eqn{h} is also small.
-#' @param driftR This is required for the \code{method="sparse"} algorithm.
-#' T
-#' @param diffusionR This is required for the \code{method="cpp"} algorithm.
-#' This should be an R function that takes as input a numeric vector of values.
-#' The function should return as output a numeric vector containing the drift
-#' function evaluated at each element of the input vector.
-#' See the second example below.
 #' @param method A string that indicates which DTQ algorithm to use.
 #' There are two choices:
 #' \describe{
@@ -240,10 +233,8 @@ rdtq <- function(h, k=NULL, bigm, a=NULL, b=NULL, init, fT,
                  method="sparse") {
   if ((method != "cpp") && (method != "sparse"))
     stop("Invalid method.")
-  if ((method == "cpp") && (is.null(drift) || is.null(diffusion)))
-    stop("The cpp method requires non-NULL drift and diffusion.")
-  if ((method == "sparse") && (is.null(driftR) || is.null(diffusionR)))
-    stop("The sparse method requires non-NULL driftR and diffusionR.")
+  if (is.null(drift) || is.null(diffusion))
+    stop("Both the cpp and sparse methods require non-NULL drift and diffusion.")
   if ((! is.numeric(h)) || (h <= 0))
     stop("Step size h must be numeric and positive.")
   if ((! is.numeric(fT)) || (fT <= 0))
@@ -272,7 +263,7 @@ rdtq <- function(h, k=NULL, bigm, a=NULL, b=NULL, init, fT,
     if (method=="sparse")
     {
       print("Using sparse method.")
-      return(.dtqsparse(h=h, k=k, bigm=bigmout, init=init, fT=fT, drift=driftR, diffusion=diffusionR))
+      return(.dtqsparse(h=h, k=k, bigm=bigmout, init=init, fT=fT, drift=drift, diffusion=diffusion))
     }
   }
   else
@@ -293,7 +284,7 @@ rdtq <- function(h, k=NULL, bigm, a=NULL, b=NULL, init, fT,
     if (method=="sparse")
     {
       print("Using sparse method.")
-      return(.dtqsparse(h=h, a=a, b=b, bigm=bigmout, init=init, fT=fT, drift=driftR, diffusion=diffusionR))
+      return(.dtqsparse(h=h, a=a, b=b, bigm=bigmout, init=init, fT=fT, drift=drift, diffusion=diffusion))
     }
   }
 }
@@ -331,6 +322,11 @@ rdtq <- function(h, k=NULL, bigm, a=NULL, b=NULL, init, fT,
 #' @param kseq a numeric vector of values of \eqn{k}, the grid spacing, to use
 #'  for the computation of the DTQ solution.  Note that \code{hseq} and
 #'  \code{kseq} must have the same lengths.
+#' @param Mseq a numeric vector of integer values of \eqn{M}.  For each
+#'   corresponding value of \eqn{k}, the spatial grid will cover the domain
+#'   \eqn{[-y_M, y_M]} where \eqn{y_M = Mk}.  This corresponds to the parameter
+#'   \code{bigm} in the \code{rdtq} function.  Note that \code{kseq} and
+#'   \code{Mseq} must have the same lengths.
 #' @param init a scalar initial condition.
 #' @param fT a positive numeric scalar giving the final time at which to compare
 #'  the exact and DTQ solutions.
@@ -341,18 +337,94 @@ rdtq <- function(h, k=NULL, bigm, a=NULL, b=NULL, init, fT,
 #'  indexed by the corresponding value of hseq.  The errors are returned in
 #'  the \eqn{L^1} norm, \eqn{L^\infty} norm, and the Kolmogorov-Smirnov norm.
 #'  The errors are returned in the form of a data frame.
-studydtqconv <- function(method, drift, diffusion, exact, hseq, kseq, init, fT, thresh=0)
+#' @examples
+#' # In this example, we will study the convergence of the DTQ method
+#' # for the SDE with drift f(x) = x/2 + (1 + x^2)^(1/2) and
+#' # diffusion g(x) = (1 + x^2)^(1/2).
+#'
+#' library(Rdtq)
+#' library(Rcpp)
+#'
+#' # implement the drift and diffusion functions using C++
+#' sourceCpp(code = '#include <Rcpp.h>
+#'           using namespace Rcpp;
+#'           double drift(double& x) { return(0.5*x + sqrt(x*x + 1.0)); }
+#'           double diff(double& x) { return(sqrt(x*x + 1.0)); }
+#'           typedef double (*funcPtr)(double& x);
+#'           // [[Rcpp::export]]
+#'           XPtr<funcPtr> driftXPtr() { return(XPtr<funcPtr>(new funcPtr(&drift))); }
+#'           // [[Rcpp::export]]
+#'           XPtr<funcPtr> diffXPtr() { return(XPtr<funcPtr>(new funcPtr(&diff))); }')
+#'
+#' # implement the drift and diffusion functions using R
+#' mydrift = function(y)
+#' {
+#'   return(0.5*y + sqrt(y^2 + 1))
+#' }
+#' mydiff = function(y)
+#' {
+#'   return(sqrt(y^2 + 1))
+#' }
+#'
+#' # implement the exact solution at time t, i.e.,
+#' # the analytical formula for the pdf p(x,t)
+#' exactsol = function(xvec,t)
+#' {
+#'   transx = asinh(xvec) - t
+#'   prefac = (1 + xvec^2)^(-1/2)
+#'   z = prefac*dnorm(x=transx)
+#'   return(z)
+#' }
+#'
+#' # define the sequence of parameters that will be used to study convergence
+#' hseq = c(0.5,0.2,0.1,0.05,0.02,0.01)
+#' kseq = hseq^(0.55)
+#' Mseq = ceiling(5*(-log(hseq))/kseq)
+#'
+#' # we will use the method="sparse" code for the three largest values in hseq,
+#' # and then switch to the method="cpp" code for the three smallest values
+#' firstpart = c(1:3)
+#' errpart1 = studydtqconv(method="sparse",drift=mydrift,diffusion=mydiff,exact=exactsol,
+#'                         hseq[firstpart],kseq[firstpart],Mseq[firstpart],
+#'                         init=0,fT=1)
+#' errpart2 = studydtqconv(method="cpp",drift=driftXPtr(),diffusion=diffXPtr(),exact=exactsol,
+#'                         hseq[-firstpart],kseq[-firstpart],Mseq[-firstpart],
+#'                         init=0,fT=1,thresh=1e-16)
+#'
+#' # now we will put everything together into one data frame
+#' mydat = rbind(errpart1,errpart2)
+#'
+#' # we plot the convergence diagram, on a log-log scale, using ggplot2
+#' library(ggplot2)
+#' library(scales)
+#' myplot = ggplot(data=mydat, aes(x=x,y=y,group=norm,color=norm))
+#' myplot = myplot + theme_bw() + theme(plot.background = element_rect(fill='white'))
+#' myxticks = sort(10^(round(log(hseq)/log(10)*10)/10))
+#' rawyticks = round(log(mydat$y)/log(10)*10)/10
+#' rawyticks = round(seq(from=min(rawyticks),to=max(rawyticks),length.out=length(myxticks))*1)/1
+#' myyticks = unique(10^rawyticks)
+#' myplot = myplot + scale_x_log10(breaks = hseq)
+#' myplot = myplot + theme(axis.text.x = element_text(angle=90,hjust=1))
+#' myplot = myplot + scale_y_log10(breaks = myyticks, labels = trans_format("log10", math_format(10^.x)))
+#' myplot = myplot + labs(x="h (temporal step size)", y="error")
+#' myplot = myplot + geom_line() + geom_point()
+#'
+#' # save the plot to a pdf (portable document format) file
+#' ggsave(filename="example.pdf", plot=myplot, width=5, height=4)
+studydtqconv <- function(method, drift, diffusion, exact, hseq, kseq, Mseq, init, fT, thresh=0)
 {
   if (!is.numeric(hseq))
     stop("hseq must be a numeric vector.")
   if (!is.numeric(kseq))
     stop("kseq must be a numeric vector.")
+  if (!is.numeric(Mseq))
+    stop("Mseq must be a numeric vector.")
   if (!is.numeric(init))
     stop("init must be numeric.")
   if (length(init) > 1)
     stop("init must be a scalar.")
-  if (length(hseq) != length(kseq))
-    stop("hseq and kseq must have the same lengths.")
+  if ((length(hseq) != length(kseq)) || (length(hseq) != length(Mseq)))
+    stop("hseq, kseq, and Mseq must have the same lengths.")
 
   nt = length(hseq)
   l1errors = numeric(length=nt)
@@ -360,14 +432,13 @@ studydtqconv <- function(method, drift, diffusion, exact, hseq, kseq, init, fT, 
   kserrors = numeric(length=nt)
   for (i in c(1:nt))
   {
-    mybigm = ceiling(pi/(kseq[i]^2))
     if (method=="cpp")
-      dtqsol = rdtq(h=hseq[i],k=kseq[i],bigm=mybigm,
+      dtqsol = rdtq(h=hseq[i],k=kseq[i],bigm=Mseq[i],
                     init=init,fT=fT,drift=drift,diffusion=diffusion,
                     method="cpp",thresh=thresh)
      if (method=="sparse")
-       dtqsol = rdtq(h=hseq[i],k=kseq[i],bigm=mybigm,
-                     init=init,fT=fT,driftR=drift,diffusionR=diffusion,
+       dtqsol = rdtq(h=hseq[i],k=kseq[i],bigm=Mseq[i],
+                     init=init,fT=fT,drift=drift,diffusion=diffusion,
                      method="sparse")
     exactsol = exact(dtqsol$xvec,fT)
     l1errors[i] = kseq[i]*sum(abs(dtqsol$pdf - exactsol))
