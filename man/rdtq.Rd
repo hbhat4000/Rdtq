@@ -2,7 +2,7 @@
 % Please edit documentation in R/RcppExports.R
 \name{rdtq}
 \alias{rdtq}
-\title{Density Tracking by Quadrature (DTQ)}
+\title{Density Tracking by Quadrature}
 \usage{
 rdtq(h, k = NULL, bigm, a = NULL, b = NULL, init, fT, drift = NULL,
   diffusion = NULL, thresh = 0, method = "sparse")
@@ -89,9 +89,9 @@ The output consists of a list with two elements:
 }
 }
 \description{
-\code{rdtq} implements DTQ algorithms to compute the probability density
-function of a stochastic differential equation with
-user-specified drift and diffusion functions.
+\code{rdtq} implements density tracking by quadrature (DTQ) algorithms
+to compute the probability density function of a stochastic differential
+equation with user-specified drift and diffusion functions.
 }
 \details{
 Consider the stochastic differential equation (SDE)

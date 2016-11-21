@@ -80,11 +80,11 @@
   return(list(xvec=xvec,pdf=as.numeric(approxpdf)))
 }
 
-#' Density Tracking by Quadrature (DTQ)
+#' Density Tracking by Quadrature
 #'
-#' \code{rdtq} implements DTQ algorithms to compute the probability density
-#' function of a stochastic differential equation with
-#' user-specified drift and diffusion functions.
+#' \code{rdtq} implements density tracking by quadrature (DTQ) algorithms
+#' to compute the probability density function of a stochastic differential
+#' equation with user-specified drift and diffusion functions.
 #'
 #' Consider the stochastic differential equation (SDE)
 #'
@@ -405,7 +405,8 @@ rdtq <- function(h, k=NULL, bigm, a=NULL, b=NULL, init, fT,
 #' myyticks = unique(10^rawyticks)
 #' myplot = myplot + scale_x_log10(breaks = hseq)
 #' myplot = myplot + theme(axis.text.x = element_text(angle=90,hjust=1))
-#' myplot = myplot + scale_y_log10(breaks = myyticks, labels = trans_format("log10", math_format(10^.x)))
+#' myplot = myplot + scale_y_log10(breaks = myyticks,
+#'                                 labels = trans_format("log10", math_format(10^.x)))
 #' myplot = myplot + labs(x="h (temporal step size)", y="error")
 #' myplot = myplot + geom_line() + geom_point()
 #'
