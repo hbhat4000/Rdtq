@@ -377,13 +377,13 @@ rdtq <- function(h, k=NULL, bigm, a=NULL, b=NULL, init, fT,
 #' }
 #'
 #' # define the sequence of parameters that will be used to study convergence
-#' hseq = c(0.5,0.2,0.1,0.05,0.02,0.01)
+#' hseq = c(0.5,0.2,0.1,0.05)
 #' kseq = hseq^(0.55)
 #' Mseq = ceiling(5*(-log(hseq))/kseq)
 #'
 #' # we will use the method="sparse" code for the three largest values in hseq,
 #' # and then switch to the method="cpp" code for the three smallest values
-#' firstpart = c(1:3)
+#' firstpart = c(1:2)
 #' errpart1 = studydtqconv(method="sparse",drift=mydrift,diffusion=mydiff,exact=exactsol,
 #'                         hseq[firstpart],kseq[firstpart],Mseq[firstpart],
 #'                         init=0,fT=1)
