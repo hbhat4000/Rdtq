@@ -5,17 +5,15 @@ Rdtq
 
 Rdtq implements Density Tracking by Quadrature (DTQ) algorithms for stochastic differential equations. Suppose you have a stochastic differential equation of the form
 
-\[
-dX_t = f(X_t) \, dt + g(X_t) \, dW_t
-\]
+dX(t) = f(X(t)) dt + g(X(t)) dW(t)
 
-where \(W_t\) is standard Brownian motion, and where \(f\) and \(g\) are user-specified drift and diffusion functions.
+where W(t) is standard Brownian motion, and where f and g are user-specified drift and diffusion functions.
 
-Let \(p(x,t)\) denote the probability density function of the random variable \(X_t\). Then Rdtq will calculate a numerical approximation to \(p(x,T)\) for a fixed time \(T > 0\).
+Let p(x,t) denote the probability density function of the random variable X(t). Then Rdtq will calculate a numerical approximation to p(x,T) for a fixed time T &gt; 0.
 
-There are three main reasons to use Rdtq to compute the density function of \(X_t\):
+There are three main reasons to use Rdtq to compute the density function of X(t):
 
-1.  *Rdtq is simultaneously easy to use and flexible*. The only functions the user has to write are those that return the drift f(x) and the diffusion g(x). In particular, the user does not have to specify the derivatives of these functions. Beyond these two functions, the user can specify the initial condition either in the form of a single point (\(X_0 = C\)), or in the form of a density function (\(p(x,0)\) at each grid point \(x\)). The user also has total control over the temporal and spatial grid spacings.
+1.  *Rdtq is simultaneously easy to use and flexible*. The only functions the user has to write are those that return the drift f(x) and the diffusion g(x). In particular, the user does not have to specify the derivatives of these functions. Beyond these two functions, the user can specify the initial condition either in the form of a single point, X\_0 = C, or in the form of a density function, p(x,0) at each grid point x. The user also has total control over the temporal and spatial grid spacings.
 
 2.  *Rdtq is provably convergent*, in the limit where the temporal and spatial grid spacings vanish. See [H. S. Bhat and R. W. M. A. Madushani, "Density Tracking by Quadrature for Stochastic Differential Equations," arXiv:1610.09572](http://bit.ly/2fbNsp5).
 
@@ -34,7 +32,7 @@ devtools::install_github("hbhat4000/Rdtq")
 Example
 -------
 
-Suppose you have the stochastic differential equation \(dX_t = -X_t \, dt + dW_t\) and you would like to find the probability density function of \(X_T\) at \(T=1\). Here is how to do that using Rdtq.
+Suppose you have the stochastic differential equation dX(t) = -X(t) dt + dW(t) and you would like to find the probability density function of X(t) at T=1. Here is how to do that using Rdtq.
 
 ``` r
 require(Rdtq)
